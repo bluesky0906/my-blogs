@@ -1,0 +1,13 @@
+{
+  "database": {
+    "rules": "firestore.rules.json"
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  }
+}
