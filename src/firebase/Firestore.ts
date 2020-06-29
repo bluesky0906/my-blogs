@@ -6,6 +6,8 @@ import { FIREBASE_CONFIG } from "./config";
 export interface BlogInfo {
   id: string;
   title: string;
+  discription: string;
+  body: string;
 }
 
 export class Env {
@@ -31,23 +33,41 @@ export class Env {
   }
 
   public async getBlogs(): Promise<BlogInfo[]> {
-    const data: BlogInfo[] = []
+    const blogs: BlogInfo[] = []
     const querySnapshot = await this.firestore.collection("blogs").get();
     querySnapshot.forEach((doc: any) => {
-      data.push({ id: doc.id, title: doc.data().title })
+      const data = doc.data();
+      blogs.push({ id: doc.id, title: data.title, discription: data.discription, body: data.body })
     });
-    return data;
+    return blogs;
   }
 
-  public async setBlog(title: string): Promise<BlogInfo> {
-    const querySnapshot = await this.firestore.collection("blogs").add({
-      title: title
-    });
-    const data = {
-      id: querySnapshot.id,
-      title: title
+  public async getBlog(id: string): Promise<BlogInfo> {
+    const querySnapshot = await this.firestore.collection("blogs").doc(id).get();
+    const data = querySnapshot.data();
+    if (!data) {
+      throw new Error('Page not Found');
     }
-    return data;
+    return { id: id, title: data.title, discription: data.discription, body: data.body };
+  }
+
+
+  public async setBlog(data: BlogInfo) {
+    if (!data.id) {
+      await this.firestore.collection("blogs").add({
+        title: data.title,
+        discription: data.discription,
+        body: data.body,
+      });
+    }
+    else {
+      await this.firestore.collection("blogs").doc(data.id).set({
+        title: data.title,
+        discription: data.discription,
+        body: data.body,
+      });
+    }
+
   }
 
   public async deleteBlog(id: string) {
