@@ -44,7 +44,7 @@ class Show extends React.Component<ShowProps, ShowState> {
                     <Button size='large' color="secondary">Back</Button>
                 </Link>
                 <Typography variant='h2'>{this.state.title}</Typography>
-                <Typography variant='h6' color="textSecondary">{this.state.discription}</Typography>
+                <Typography variant='body1' color="textSecondary">{this.state.discription}</Typography>
                 <Preview
                     data={this.state.body} // markedでhtmlにパースするときのデータ
                 />
