@@ -15,42 +15,67 @@ export class Env {
 
   public readonly firebase: firebase.app.App;
   public readonly firestore: firebase.firestore.Firestore;
+  public readonly auth: firebase.auth.Auth;
   public readonly providerGoogle = new firebase.auth.GoogleAuthProvider();
 
   private constructor() {
     this.firebase = firebase.initializeApp(FIREBASE_CONFIG);
     this.firestore = this.firebase.firestore();
+    this.auth = firebase.auth();
     //const settings = { timestampsInSnapshots: true };
     //this.firestore.settings(settings);
   }
 
   public static get instance(): Env {
-
     if (!this.singleInstance) {
       this.singleInstance = new Env();
     }
     return this.singleInstance;
   }
 
+  public async signin(): Promise<any> {
+    const result = await this.auth.signInWithPopup(this.providerGoogle);
+    console.debug(result);
+    const token = await this.getToken();
+    return token;
+  }
+
+  public async getToken(): Promise<any> {
+    const token = await this.auth.currentUser?.getIdToken();
+    return token;
+  }
+
   public async getBlogs(): Promise<BlogInfo[]> {
-    const blogs: BlogInfo[] = []
+    const blogs: BlogInfo[] = [];
     const querySnapshot = await this.firestore.collection("blogs").get();
     querySnapshot.forEach((doc: any) => {
       const data = doc.data();
-      blogs.push({ id: doc.id, title: data.title, discription: data.discription, body: data.body })
+      blogs.push({
+        id: doc.id,
+        title: data.title,
+        discription: data.discription,
+        body: data.body,
+      });
     });
     return blogs;
   }
 
   public async getBlog(id: string): Promise<BlogInfo> {
-    const querySnapshot = await this.firestore.collection("blogs").doc(id).get();
+    const querySnapshot = await this.firestore
+      .collection("blogs")
+      .doc(id)
+      .get();
     const data = querySnapshot.data();
     if (!data) {
-      throw new Error('Page not Found');
+      throw new Error("Page not Found");
     }
-    return { id: id, title: data.title, discription: data.discription, body: data.body };
+    return {
+      id: id,
+      title: data.title,
+      discription: data.discription,
+      body: data.body,
+    };
   }
-
 
   public async setBlog(data: BlogInfo) {
     if (!data.id) {
@@ -59,15 +84,13 @@ export class Env {
         discription: data.discription,
         body: data.body,
       });
-    }
-    else {
+    } else {
       await this.firestore.collection("blogs").doc(data.id).set({
         title: data.title,
         discription: data.discription,
         body: data.body,
       });
     }
-
   }
 
   public async deleteBlog(id: string) {
